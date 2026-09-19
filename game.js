@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ТИР — BETA 0.6 — логика игры
+   ТИР — BETA 0.7.1 — логика игры + интеграция с сервером
    ═══════════════════════════════════════════════════════════════ */
 const $=id=>document.getElementById(id);
 const range=$("range"),rifle=$("rifle"),rifleWrap=$("rifleWrap"),flash=$("muzzleFlash"),laser=$("laser");
@@ -9,10 +9,13 @@ const endScreen=$("endScreen");
 let game=false,score=0,comboHits=0,ultHits=0,targets=[],bullets=[],nextId=1,spawnTimer=null,raf=null;
 let aimX=50,aimY=40,laserEnabled=false;
 
-/* ★ Следим за ростом целой части комбо-множителя.
-   Когда множитель переходит 2.0 → 3.0 и т.д., показываем
-   золотой текст. Сбрасывается при старте и при потере комбо. */
 let prevComboFloor = 1;
+
+/* ═══════════════════════════════════════════════════════════════
+   ★★★ АДРЕС СЕРВЕРА ★★★
+   Если пересоздашь Worker — поменяй здесь (и в menu.html тоже).
+   ═══════════════════════════════════════════════════════════════ */
+const SERVER_URL = 'https://tir-worker-paw31.pecerskijnikit.workers.dev';
 
 /* ═══════════════════════════════════════════════════════════════
    ★ TELEGRAM WEBAPP
@@ -24,11 +27,6 @@ if (tg) {
   if (tg.setHeaderColor) tg.setHeaderColor('#11161e');
   if (tg.setBackgroundColor) tg.setBackgroundColor('#090c11');
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   ★ ССЫЛКА НА СТИКЕРПАК — замени на свой
-   ═══════════════════════════════════════════════════════════════ */
-const STICKER_PACK_URL = 'https://t.me/addstickers/YOUR_PACK_NAME';
 
 /* ═══════════════════════════════════════════════════════════════
    ★ СТАТИСТИКА ЗАБЕГА
@@ -135,14 +133,11 @@ function spawn(){
 }
 function removeTarget(t){t.el.remove();targets=targets.filter(x=>x!==t)}
 
-/* ★ Штраф лазера: 0.75 = −25%. */
 function addScore(points){score+=points*(laserEnabled?.75:1)}
 
 /* ═══════════════════════════════════════════════════════════════
    ★★★ СПЕЦЭФФЕКТЫ ★★★
    ═══════════════════════════════════════════════════════════════ */
-
-/* Возвращает координаты центра элемента в системе #range */
 function getElCenter(el){
   const tr = el.getBoundingClientRect();
   const r  = range.getBoundingClientRect();
@@ -152,15 +147,9 @@ function getElCenter(el){
   };
 }
 
-/* ★ ЭФФЕКТ 1: разлёт мишени на осколки.
-
-   НАСТРОЙКИ (можно менять):
-   - count: количество осколков. Сейчас 4-5 случайно.
-   - dist:  дистанция разлёта. Сейчас 45-90 px.
-   - размер осколков задаётся в CSS (.shard width/height). */
 function shatterTarget(el, x, y){
   const color = getComputedStyle(el).backgroundColor;
-  const count = 4 + Math.floor(Math.random() * 2);   // ★ 4-5 осколков
+  const count = 4 + Math.floor(Math.random() * 2);
 
   for (let i = 0; i < count; i++){
     const shard = document.createElement('div');
@@ -169,14 +158,12 @@ function shatterTarget(el, x, y){
     shard.style.top  = y + 'px';
     shard.style.background = color;
 
-    // Размер осколка — случайный для естественности
     const size = 8 + Math.random() * 8;
     shard.style.width  = size + 'px';
     shard.style.height = size + 'px';
 
-    // Угол разлёта: равномерно по кругу + немного шума
     const angle = (Math.PI * 2 * i) / count + Math.random() * 0.6;
-    const dist  = 45 + Math.random() * 45;            // ★ дистанция
+    const dist  = 45 + Math.random() * 45;
 
     shard.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
     shard.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
@@ -186,12 +173,6 @@ function shatterTarget(el, x, y){
   }
 }
 
-/* ★ ЭФФЕКТ 2: золотой текст "×N.0" при росте множителя.
-
-   Показывается ТОЛЬКО при переходе на новую целую часть:
-   ×1.0 → ×2.0 → ×3.0 и т.д. Формула комбо: 1 + (hits-1)*0.1,
-   так что ×2.0 достигается при 11 попаданиях подряд,
-   ×3.0 — при 21, ×4.0 — при 31 и т.д. */
 function showGoldCombo(x, y, mult){
   const el = document.createElement('div');
   el.className = 'combo-pop';
@@ -203,7 +184,7 @@ function showGoldCombo(x, y, mult){
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ПОПАДАНИЕ (с эффектами)
+   ПОПАДАНИЕ
    ═══════════════════════════════════════════════════════════════ */
 function hitTarget(t){
   playSfx('hit');
@@ -220,14 +201,12 @@ function hitTarget(t){
   comboHits++;
   ultHits = Math.min(5, ultHits + 1);
 
-  // ★ ЭФФЕКТ 1: разлёт осколков при убийстве
   let center = null;
   if (!alive){
     center = getElCenter(t.el);
     shatterTarget(t.el, center.x, center.y);
   }
 
-  // ★ ЭФФЕКТ 2: золотая подсветка при росте целой части множителя
   const newFloor = Math.floor(comboMult());
   if (newFloor > prevComboFloor){
     prevComboFloor = newFloor;
@@ -242,7 +221,7 @@ function hitTarget(t){
 function miss(){
   playSfx('miss');
   comboHits = 0;
-  prevComboFloor = 1;   // ★ сброс счётчика золотых подсветок
+  prevComboFloor = 1;
   updateUI();
 }
 
@@ -353,7 +332,6 @@ function ultimate(){
   runStats.ultCount++;
   playSfx('ult');
 
-  // Разлетаем все мишени одновременно
   [...targets].forEach(t => {
     const c = getElCenter(t.el);
     shatterTarget(t.el, c.x, c.y);
@@ -369,7 +347,7 @@ function ultimate(){
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   СОХРАНЕНИЕ РЕЗУЛЬТАТА (последние 10 забегов)
+   СОХРАНЕНИЕ РЕЗУЛЬТАТА В ЛОКАЛЬНУЮ ИСТОРИЮ
    ═══════════════════════════════════════════════════════════════ */
 function saveRunResult(win){
   try {
@@ -390,6 +368,47 @@ function saveRunResult(win){
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   ★★★ ОТПРАВКА РЕЗУЛЬТАТА НА СЕРВЕР ★★★
+   Вызывается в finish() и exitToMenu().
+   Если игра вне Telegram (нет initData) — тихо ничего не делает.
+   ═══════════════════════════════════════════════════════════════ */
+async function submitRunToServer(isWin){
+  if (!tg || !tg.initData){
+    console.log('[tir] Нет initData — пропускаем отправку на сервер');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${SERVER_URL}/api/submit-run`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'tma ' + tg.initData
+      },
+      body: JSON.stringify({
+        run: {
+          score: Math.floor(score),
+          duration: runStats.duration,
+          shots: runStats.shotCount,
+          ults: runStats.ultCount,
+          max_combo: +runStats.maxComboMult.toFixed(1),
+          is_win: isWin
+        }
+      })
+    });
+
+    const data = await response.json();
+    console.log('[tir] Сервер ответил:', data);
+
+    if (!response.ok){
+      console.warn('[tir] Сервер отклонил результат:', data);
+    }
+  } catch (err){
+    console.error('[tir] Ошибка отправки на сервер:', err);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    МОСТ МЕЖДУ МЕНЮ (iframe) И ИГРОЙ
    ═══════════════════════════════════════════════════════════════ */
 const menuFrame=$("menuFrame");
@@ -401,7 +420,7 @@ function startGame(){
   score=0;comboHits=0;ultHits=0;targets=[];
   bullets.forEach(b=>b.remove());bullets=[];
   nextId=1;game=true;
-  prevComboFloor = 1;   // ★ сброс золотых подсветок
+  prevComboFloor = 1;
   runStats = { shotCount:0, ultCount:0, maxComboMult:1, startTime:performance.now(), duration:0 };
   updateUI();
   endScreen.classList.add("hidden");
@@ -418,6 +437,9 @@ function startGame(){
   raf=requestAnimationFrame(loop);
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   ФИНИШ (победа или проигрыш по правилам)
+   ═══════════════════════════════════════════════════════════════ */
 function finish(win){
   game=false;clearInterval(spawnTimer);
   laser.classList.add("hidden");
@@ -427,6 +449,7 @@ function finish(win){
 
   runStats.duration = Math.round((performance.now() - runStats.startTime) / 1000);
   saveRunResult(win);
+  submitRunToServer(win);   // ★ отправка на сервер
 
   $("endTitle").textContent=win?"ПОБЕДА!":"ИГРА ОКОНЧЕНА";
   $("endReason").textContent=win
@@ -437,11 +460,15 @@ function finish(win){
   endScreen.classList.remove("hidden");
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   ВЫХОД В МЕНЮ ЧЕРЕЗ ДОМИК
+   ═══════════════════════════════════════════════════════════════ */
 function exitToMenu(){
   if(!game) return;
 
   runStats.duration = Math.round((performance.now() - runStats.startTime) / 1000);
   saveRunResult(false);
+  submitRunToServer(false);   // ★ отправка на сервер
 
   game = false;
   clearInterval(spawnTimer);
@@ -540,11 +567,56 @@ $("backMenu").onclick=()=>{
   updateRifle();
 };
 
-$("stickerBtn").onclick = () => {
-  if (tg && tg.openTelegramLink) {
-    tg.openTelegramLink(STICKER_PACK_URL);
-  } else {
-    window.open(STICKER_PACK_URL, '_blank');
+/* ═══════════════════════════════════════════════════════════════
+   ★★★ КНОПКА ЗАБРАТЬ СТИКЕРЫ ★★★
+   Вызывает /api/claim-reward на сервере. Сервер сам проверит,
+   есть ли победа, и не выдавал ли уже награду.
+   ═══════════════════════════════════════════════════════════════ */
+$("stickerBtn").onclick = async () => {
+  const reason = $("endReason");
+  const btn = $("stickerBtn");
+
+  if (!tg || !tg.initData){
+    reason.textContent = 'Открой игру через Telegram-бота, чтобы получить награду.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Проверяем...';
+  reason.textContent = '';
+
+  try {
+    const response = await fetch(`${SERVER_URL}/api/claim-reward`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'tma ' + tg.initData
+      }
+    });
+    const data = await response.json();
+
+    if (data.ok){
+      reason.textContent = '🎁 Награда выдана! Скоро придёт в личку от бота.';
+      btn.textContent = '✅ ЗАБРАНО';
+      btn.style.background = '#3a3f4a';
+    } else if (data.error === 'already claimed'){
+      reason.textContent = '🎁 Ты уже получал эту награду.';
+      btn.textContent = '✅ УЖЕ ЗАБРАНО';
+      btn.style.background = '#3a3f4a';
+    } else if (data.error === 'no win yet'){
+      reason.textContent = 'Награду дают только за победу.';
+      btn.textContent = '🎁 ЗАБРАТЬ СТИКЕРЫ';
+      btn.disabled = false;
+    } else {
+      reason.textContent = 'Ошибка: ' + (data.error || 'unknown');
+      btn.textContent = '🎁 ЗАБРАТЬ СТИКЕРЫ';
+      btn.disabled = false;
+    }
+  } catch (err){
+    console.error('[tir] Ошибка claim-reward:', err);
+    reason.textContent = 'Сервер недоступен. Попробуй позже.';
+    btn.textContent = '🎁 ЗАБРАТЬ СТИКЕРЫ';
+    btn.disabled = false;
   }
 };
 
