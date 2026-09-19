@@ -1,6 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
    ТИР — BETA 0.8 — бесконечный режим, монеты, скины
    ═══════════════════════════════════════════════════════════════ */
+window.onerror = function(msg, src, line, col){
+  alert('ОШИБКА в game.js:\n' + msg + '\n' + line + ':' + col);
+};
+
 const $=id=>document.getElementById(id);
 const range=$("range"),rifle=$("rifle"),rifleWrap=$("rifleWrap"),flash=$("muzzleFlash"),laser=$("laser");
 const scoreEl=$("score"),comboEl=$("combo"),ultEl=$("ult"),ultBtn=$("ultimate");
