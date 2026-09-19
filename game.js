@@ -1,8 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════
    ТИР — BETA 0.8 — бесконечный режим, монеты, скины
    ═══════════════════════════════════════════════════════════════ */
-window.onerror = function(msg, src, line, col){
-  alert('ОШИБКА в game.js:\n' + msg + '\n' + line + ':' + col);
+window.onerror = function(msg, src, line, col, err){
+  document.body.innerHTML = '<pre style="color:#fff;background:#111;padding:20px;font-size:13px;white-space:pre-wrap;position:fixed;inset:0;z-index:9999;overflow:auto">' +
+    'ОШИБКА:\n' + msg + '\n\n' +
+    'Файл: ' + src + '\n' +
+    'Строка: ' + line + ':' + col + '\n\n' +
+    (err && err.stack ? 'STACK:\n' + err.stack : '') + '</pre>';
 };
 
 const $=id=>document.getElementById(id);
