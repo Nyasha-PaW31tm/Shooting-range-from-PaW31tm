@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Меню — Тир</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;color:#fff;font-family:Arial,sans-serif;touch-action:none;transition:background-color .3s ease}
+button{border:0;color:#fff;font-weight:800;font-size:16px;border-radius:14px;background:#303846;cursor:pointer}
+#menuRoot{width:100%;height:100%;display:grid;place-items:center;padding:24px;overflow-y:auto}
+.screen{width:100%;display:grid;place-items:center}
+.menu-card{width:min(420px,92vw);padding:30px;border-radius:24px;background:#171c25;border:1px solid #333b48;text-align:center;box-shadow:0 22px 70px #000;transition:background .3s ease,color .3s ease}
+.menu-card h1{margin:8px 0 4px}
+.logo-mark{font-size:42px;font-weight:900;letter-spacing:5px}
+.beta{color:#8893a3;font-size:12px;margin:0 0 24px}
+.menu-card button{display:block;width:100%;padding:16px;margin-top:12px;background:#3f4a5b}
+.menu-card button.secondary{background:#242b36}
+.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;margin-top:18px;padding:14px;border-radius:14px;background:#11161e;color:#e6eaf0;font-weight:700}
+.setting small{color:#8f99a8;font-weight:400}
+.toggle{width:82px!important;margin:0!important;padding:11px 8px!important;font-size:12px}
+.toggle.on{background:#a43e3e}
+.toggle.off{background:#343c49}
+.dev{color:#9ca6b5;font-size:13px}
+.hidden{display:none!important}
+
+body[data-bg="dark"]  { background:#090c11; color:#fff; }
+body[data-bg="black"] { background:#000;    color:#fff; }
+body[data-bg="gray"]  { background:#2a2f38; color:#fff; }
+body[data-bg="light"] { background:#c8ced6; color:#111; }
+body[data-bg="light"] .menu-card{background:#e8ecf1;color:#111;border-color:#a8b0ba}
+body[data-bg="light"] .beta{color:#5a6470}
+body[data-bg="light"] .setting{background:#d0d6de;color:#111}
+body[data-bg="light"] .setting small{color:#5a6470}
+
+body[data-bg="confetti"]{
+  background-color:#4a1a3a;
+  background-image:
+    radial-gradient(circle at 10px 15px, #ff6b9d 3px, transparent 4px),
+    radial-gradient(circle at 55px 35px, #ffd93d 3px, transparent 4px),
+    radial-gradient(circle at 30px 65px, #6bcbff 3px, transparent 4px),
+    radial-gradient(circle at 80px 85px, #7bff9c 3px, transparent 4px),
+    radial-gradient(circle at 95px 20px, #ff8cd9 3px, transparent 4px),
+    radial-gradient(circle at 20px 95px, #c58cff 3px, transparent 4px),
+    radial-gradient(circle at 70px 5px, #ffe066 3px, transparent 4px);
+  background-size:110px 110px;
+  color:#fff;
+}
+body[data-bg="confetti"] .menu-card{background:#3a1028;border-color:#7a3a6a}
+
+.settings-title{margin:0 0 20px;font-size:22px}
+.setting-block{margin-top:16px;padding:16px;border-radius:14px;background:#11161e;text-align:left}
+body[data-bg="light"] .setting-block{background:#d0d6de}
+.setting-block h3{margin:0 0 12px;font-size:15px;color:#aeb7c5;letter-spacing:1px;text-transform:uppercase}
+body[data-bg="light"] .setting-block h3{color:#5a6470}
+
+.vol-row{display:flex;align-items:center;gap:12px}
+.vol-row input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:6px;border-radius:4px;background:#3f4a5b;outline:none}
+.vol-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#ffd23c;cursor:pointer;box-shadow:0 0 8px rgba(255,210,60,.6)}
+.vol-row input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#ffd23c;border:0;cursor:pointer}
+.vol-val{min-width:48px;text-align:right;font-weight:900;color:#ffd23c}
+
+.bg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bg-btn{margin:0!important;padding:12px 8px!important;font-size:13px!important;background:#242b36!important;border:2px solid transparent!important}
+.bg-btn.active{border-color:#ffd23c!important;background:#3a4150!important}
+.bg-btn.color-dark{background:#11161e!important}
+.bg-btn.color-black{background:#000!important}
+.bg-btn.color-gray{background:#3a4149!important}
+.bg-btn.color-light{background:#c8ced6!important;color:#111!important}
+.bg-btn.color-confetti{background:linear-gradient(135deg,#5a2050,#3a1030 60%,#7a2a5a)!important;color:#fff!important}
+
+.dev-btn{margin-top:16px!important;background:#1a1f27!important;color:#6b7280!important;font-size:13px!important}
+body[data-bg="light"] .dev-btn{background:#b8bec6!important;color:#5a6470!important}
+
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#171c25;color:#fff;padding:14px 22px;border-radius:14px;border:1px solid #ffd23c;box-shadow:0 12px 40px rgba(0,0,0,.5);font-weight:700;font-size:14px;z-index:200;max-width:90vw;text-align:center;animation:toastIn .3s ease-out}
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,-10px)}100%{opacity:1;transform:translate(-50%,0)}}
+
+.about-card{width:min(440px,94vw);max-height:80vh;overflow-y:auto;padding:26px;border-radius:22px;background:#171c25;border:1px solid #333b48;text-align:left;box-shadow:0 22px 70px #000}
+body[data-bg="light"] .about-card{background:#e8ecf1;color:#111}
+.about-card h2{margin-top:0;text-align:center}
+.about-card h3{color:#ffd23c;margin:18px 0 8px;font-size:15px;letter-spacing:1px}
+.about-card ul{margin:0;padding-left:18px;color:#c7d0dc;font-size:14px;line-height:1.6}
+body[data-bg="light"] .about-card ul{color:#3a4149}
+.about-card ul li{margin-bottom:6px}
+.about-card a{color:#6db3f2;text-decoration:none;font-weight:700}
+.about-card a:active{opacity:.7}
+.version-tag{display:inline-block;background:#ffd23c;color:#111;font-weight:900;font-size:13px;padding:3px 12px;border-radius:8px;margin-bottom:6px}
+</style>
+</head>
+<body data-bg="dark">
+
+<div id="menuRoot">
+
+  <div id="screenMain" class="screen">
+    <div class="menu-card">
+      <div class="logo-mark">ТИР</div>
+      <h1>Стрельбище</h1>
+      <p class="beta">BETA 0.6</p>
+
+      <button id="playBtn">ИГРАТЬ</button>
+      <button id="historyBtn" class="secondary">ИСТОРИЯ</button>
+      <button id="aboutBtn" class="secondary">ОБ ИГРЕ</button>
+      <button id="settingsBtn" class="secondary">НАСТРОЙКИ</button>
+
+      <div class="setting">
+        <span>Лазерный целеуказатель<br><small>−25% к очкам при включении</small></span>
+        <button id="laserToggle" class="toggle off">ВЫКЛ</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screenSettings" class="screen hidden">
+    <div class="menu-card">
+      <h2 class="settings-title">⚙️ Настройки</h2>
+
+      <div class="setting-block">
+        <h3>🔊 Звук</h3>
+        <div class="vol-row">
+          <input type="range" id="volSlider" min="0" max="100" value="70">
+          <span class="vol-val" id="volVal">70%</span>
+        </div>
+      </div>
+
+      <div class="setting-block">
+        <h3>🎨 Фон</h3>
+        <div class="bg-row">
+          <button class="bg-btn color-dark"  data-bg="dark">Тёмный</button>
+          <button class="bg-btn color-black" data-bg="black">Чёрный</button>
+          <button class="bg-btn color-gray"  data-bg="gray">Серый</button>
+          <button class="bg-btn color-light" data-bg="light">Светлый</button>
+          <button class="bg-btn color-confetti hidden" id="bgConfettiBtn" data-bg="confetti">🌸 Конфети</button>
+        </div>
+      </div>
+
+      <button id="devBtn" class="dev-btn">🚧 В разработке</button>
+
+      <button id="backFromSettings" class="secondary" style="margin-top:20px">← НАЗАД</button>
+    </div>
+  </div>
+
+  <div id="screenAbout" class="screen hidden">
+    <div class="about-card">
+      <div style="text-align:center"><span class="version-tag">BETA 0.6</span></div>
+      <h2>О игре</h2>
+      <p style="color:#aeb7c5;font-size:14px;text-align:center;margin-top:0">
+        Тир / Стрельбище — браузерная игра на чистом HTML/CSS/JS
+      </p>
+
+      <h3>✨ НОВОЕ В 0.6</h3>
+      <ul>
+        <li>📜 История последних 10 забегов</li>
+        <li>🏠 Кнопка выхода в меню прямо из игры</li>
+        <li>🎁 Награда за победу — ссылка на стикерпак</li>
+        <li>📱 Интеграция с Telegram Mini App</li>
+      </ul>
+
+      <h3>✨ НОВОЕ В 0.5</h3>
+      <ul>
+        <li>Экран <b>Настроек</b></li>
+        <li>Регулировка громкости звука</li>
+        <li>Переключение фона</li>
+        <li>🥚 Добавлено <b>пасхальное яйцо</b> — найди его сам!</li>
+      </ul>
+
+      <h3>👤 СОЗДАТЕЛИ</h3>
+      <ul>
+        <li><b>DeepSeek</b> — архитектура, рефакторинг, фиксы, меню, настройки</li>
+        <li><b>ChatGPT</b> — первоначальная версия проекта (BETA 0.3)</li>
+        <li><b>Hen_Nyasha</b> — идея, баланс, тестирование — <a href="https://t.me/Hen_Nyasha" target="_blank">t.me/Hen_Nyasha</a></li>
+      </ul>
+
+      <button id="backFromAbout" class="secondary" style="margin-top:20px;width:100%">← НАЗАД</button>
+    </div>
+  </div>
+
+  <div id="screenHistory" class="screen hidden">
+    <div class="about-card">
+      <h2>📜 История забегов</h2>
+      <p style="color:#aeb7c5;font-size:13px;text-align:center;margin-top:0">
+        Последние 10 попыток
+      </p>
+      <div id="historyList" style="margin-top:16px"></div>
+      <button id="backFromHistory" class="secondary" style="margin-top:20px;width:100%">← НАЗАД</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+const send = (type, payload) => {
+  if (window.parent === window) {
+    console.warn('menu.html открыт напрямую. Открывай index.html!');
+    return;
+  }
+  window.parent.postMessage({ source: 'menu', type, payload }, '*');
+};
+
+const screens = {
+  main:     document.getElementById('screenMain'),
+  settings: document.getElementById('screenSettings'),
+  about:    document.getElementById('screenAbout'),
+  history:  document.getElementById('screenHistory'),
+};
+function showScreen(name){
+  for (const k in screens) screens[k].classList.toggle('hidden', k !== name);
+}
+
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+function showToast(text, ms = 2400){
+  toastEl.textContent = text;
+  toastEl.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.add('hidden'), ms);
+}
+
+document.getElementById('playBtn').onclick = () => send('startGame');
+document.getElementById('historyBtn').onclick = () => {
+  renderHistory();
+  showScreen('history');
+};
+document.getElementById('backFromHistory').onclick = () => showScreen('main');
+document.getElementById('aboutBtn').onclick = () => showScreen('about');
+document.getElementById('backFromAbout').onclick = () => showScreen('main');
+document.getElementById('settingsBtn').onclick = () => showScreen('settings');
+document.getElementById('backFromSettings').onclick = () => showScreen('main');
+
+const laserBtn = document.getElementById('laserToggle');
+laserBtn.onclick = () => {
+  const newState = !laserBtn.classList.contains('on');
+  laserBtn.textContent = newState ? 'ВКЛ' : 'ВЫКЛ';
+  laserBtn.classList.toggle('on', newState);
+  laserBtn.classList.toggle('off', !newState);
+  send('setLaser', newState);
+};
+
+const volSlider = document.getElementById('volSlider');
+const volVal = document.getElementById('volVal');
+function applyVolume(v){
+  volSlider.value = v;
+  volVal.textContent = v + '%';
+  send('setVolume', v / 100);
+  localStorage.setItem('tir_volume', v);
+}
+volSlider.oninput = () => applyVolume(+volSlider.value);
+const savedVol = localStorage.getItem('tir_volume');
+applyVolume(savedVol !== null ? +savedVol : 70);
+
+const bgButtons = document.querySelectorAll('.bg-btn');
+function applyBg(name){
+  document.body.dataset.bg = name;
+  bgButtons.forEach(b => b.classList.toggle('active', b.dataset.bg === name));
+  send('setBackground', name);
+  localStorage.setItem('tir_bg', name);
+}
+bgButtons.forEach(btn => { btn.onclick = () => applyBg(btn.dataset.bg); });
+const savedBg = localStorage.getItem('tir_bg') || 'dark';
+document.body.dataset.bg = savedBg;
+bgButtons.forEach(b => b.classList.toggle('active', b.dataset.bg === savedBg));
+send('setBackground', savedBg);
+
+const devBtn = document.getElementById('devBtn');
+const bgConfettiBtn = document.getElementById('bgConfettiBtn');
+let devClicks = 0;
+let devResetTimer = null;
+
+if (localStorage.getItem('tir_easterEgg') === '1'){
+  bgConfettiBtn.classList.remove('hidden');
+}
+
+devBtn.onclick = () => {
+  devClicks++;
+  clearTimeout(devResetTimer);
+  devResetTimer = setTimeout(() => { devClicks = 0; }, 3000);
+
+  if (devClicks >= 10){
+    devClicks = 0;
+    localStorage.setItem('tir_easterEgg', '1');
+    bgConfettiBtn.classList.remove('hidden');
+    showToast('🎉 Пасхалка открыта! Новый фон доступен.', 3000);
+  }
+};
+
+function renderHistory(){
+  const list = document.getElementById('historyList');
+  const data = JSON.parse(localStorage.getItem('tir_history') || '[]');
+
+  if (data.length === 0){
+    list.innerHTML = '<p style="text-align:center;color:#8893a3;padding:20px">Пока пусто. Сыграй первый забег!</p>';
+    return;
+  }
+
+  const bestScore = Math.max(...data.map(r => r.score));
+
+  list.innerHTML = data.map((r) => {
+    const isBest = r.score === bestScore && r.win;
+    const medal = isBest ? ' 🏆' : '';
+    const winBadge = r.win ? ' ✅' : '';
+    const mins = Math.floor(r.duration / 60);
+    const secs = r.duration % 60;
+    const timeStr = mins > 0 ? `${mins}м ${secs}с` : `${secs}с`;
+
+    return `
+      <div style="padding:10px 12px;margin-bottom:8px;border-radius:12px;background:${isBest ? '#2a3a20' : '#11161e'};border:1px solid ${isBest ? '#5a8a3a' : '#2a3039'}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <b style="font-size:16px">${r.score}${medal}${winBadge}</b>
+          <span style="color:#8893a3;font-size:12px">${r.date}</span>
+        </div>
+        <div style="display:flex;gap:14px;color:#aeb7c5;font-size:12px;margin-top:6px;flex-wrap:wrap">
+          <span>⏱ ${timeStr}</span>
+          <span>🔫 ${r.shots}</span>
+          <span>⚡ ${r.ults} ULT</span>
+          <span>×${r.maxCombo}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.addEventListener('message', (e) => {
+  if (!e.data || e.data.source !== 'game') return;
+  if (e.data.type === 'resetUI'){
+    showScreen('main');
+  }
+});
+</script>
+</body>
+</html>

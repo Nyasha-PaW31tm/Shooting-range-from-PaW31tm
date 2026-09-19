@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Тир — BETA 0.6</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+<header class="top">
+  <div class="score">Очки: <b id="score">0</b></div>
+  <div class="stats"><span>Комбо <b id="combo">×1.0</b></span><span>ULT <b id="ult">0/5</b></span></div>
+</header>
+
+<main id="range">
+  <!-- Кнопка выхода в меню — видна только во время игры -->
+  <button id="homeBtn" class="home-btn hidden" title="Выйти в меню">🏠</button>
+
+  <div class="lane" data-lane="0"></div>
+  <div class="lane" data-lane="1"></div>
+  <div class="lane" data-lane="2"></div>
+
+  <div id="laser" class="hidden"></div>
+
+  <div id="rifleWrap">
+    <div id="rifle">
+      <div class="rifle-stock"></div><div class="rifle-grip"></div><div class="rifle-receiver"></div>
+      <div class="rifle-barrel"></div><div class="rifle-front-sight"></div><div class="rifle-rear-sight"></div><div class="rifle-muzzle"></div>
+    </div>
+  </div>
+
+  <div id="muzzleFlash"></div>
+  <div id="message"></div>
+</main>
+
+<footer class="controls">
+  <button id="fire">ВЫСТРЕЛ</button>
+  <button id="ultimate">ULT</button>
+</footer>
+
+<section id="endScreen" class="overlay hidden">
+  <div class="menu-card">
+    <h1 id="endTitle">ПОБЕДА!</h1>
+    <p>Результат: <b id="finalScore">0</b></p>
+    <p id="endReason"></p>
+    <button id="stickerBtn" class="hidden" style="background:#2a9d8f">🎁 ЗАБРАТЬ СТИКЕРЫ</button>
+    <button id="again">ЕЩЁ РАЗ</button>
+    <button id="backMenu" class="secondary">В МЕНЮ</button>
+  </div>
+</section>
+
+<iframe id="menuFrame" src="menu.html" style="position:fixed;inset:0;width:100%;height:100%;border:0;z-index:30;background:#090c11;"></iframe>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
