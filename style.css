@@ -126,3 +126,54 @@ body[data-bg="confetti"] #range{
 #message{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-weight:900;font-size:22px;z-index:12;text-shadow:0 2px 5px #000;pointer-events:none}
 .pop{animation:pop .4s ease-out}
 @keyframes pop{0%{opacity:0;transform:translate(-50%,-8px) scale(.7)}100%{opacity:1;transform:translate(-50%,0) scale(1)}}
+
+/* ═══════════════════════════════════════════════════════════════
+   ★★★ СПЕЦЭФФЕКТЫ ★★★
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Осколки разлетающейся мишени ─── */
+.shard{
+  position:absolute;
+  width:12px;
+  height:12px;
+  border-radius:3px;
+  z-index:15;
+  pointer-events:none;
+  box-shadow:0 0 6px rgba(255,255,255,.5);
+  animation:shatter .55s cubic-bezier(.2,.7,.3,1) forwards;
+}
+@keyframes shatter{
+  0%{
+    transform:translate(-50%,-50%) scale(1) rotate(0);
+    opacity:1;
+  }
+  100%{
+    transform:translate(
+      calc(-50% + var(--dx)),
+      calc(-50% + var(--dy))
+    ) scale(.35) rotate(220deg);
+    opacity:0;
+  }
+}
+
+/* ─── Золотой текст при росте комбо ×1.0 ─── */
+.combo-pop{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  font-weight:900;
+  font-size:26px;
+  color:#ffd23c;
+  text-shadow:
+    0 0 12px rgba(255,210,60,.95),
+    0 0 24px rgba(255,180,20,.7),
+    0 2px 4px #000;
+  pointer-events:none;
+  z-index:20;
+  animation:comboPop 1.2s cubic-bezier(.2,.8,.3,1) forwards;
+}
+@keyframes comboPop{
+  0%  { opacity:0; transform:translate(-50%,-50%) scale(.4); }
+  18% { opacity:1; transform:translate(-50%,-90%) scale(1.25); }
+  45% { opacity:1; transform:translate(-50%,-110%) scale(1); }
+  100%{ opacity:0; transform:translate(-50%,-160%) scale(.95); }
+}
