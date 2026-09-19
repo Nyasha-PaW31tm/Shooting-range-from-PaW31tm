@@ -177,3 +177,82 @@ body[data-bg="confetti"] #range{
   45% { opacity:1; transform:translate(-50%,-110%) scale(1); }
   100%{ opacity:0; transform:translate(-50%,-160%) scale(.95); }
 }
+/* ═══════════════════════════════════════════════════════════════
+   ★★★ BETA 0.8 — новые стили ★★★
+   ═══════════════════════════════════════════════════════════════ */
+
+.coins{color:#ffd23c;font-weight:800}
+.coins b{color:#ffd23c}
+#missesBlock b{color:#ff6b6b}
+
+.score.gold-record,
+.score.gold-record b{
+  color:#ffd23c;
+  text-shadow:0 0 12px rgba(255,210,60,.7), 0 0 24px rgba(255,180,20,.4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ★ СКИНЫ РУЖЬЯ
+   Цвета вынесены в CSS-переменные. Класс skin-* на <body>
+   переопределяет их. Чтобы добавить новый скин — копируешь
+   блок body.skin-XXX и меняешь значения переменных.
+   ═══════════════════════════════════════════════════════════════ */
+body{
+  /* Стандартный скин (default) */
+  --r-barrel: #9aa3af;
+  --r-barrel-sh: #68717e;
+  --r-receiver: #6f7987;
+  --r-receiver-inset: #4d5663;
+  --r-stock: #4d5664;
+  --r-grip: #353d49;
+  --r-muzzle: #c5cbd2;
+  --r-muzzle-border: #505965;
+  --r-sight-front: #e9edf1;
+  --r-sight-rear: #20252d;
+  --r-glow: none;
+}
+
+/* ★ СКИН «НЕОН» — 45 монет */
+body.skin-neon{
+  --r-barrel: #1a2a35;
+  --r-barrel-sh: #00aab8;
+  --r-receiver: #0d1820;
+  --r-receiver-inset: #0a4a55;
+  --r-stock: #0a1218;
+  --r-grip: #0f1820;
+  --r-muzzle: #00e5ff;
+  --r-muzzle-border: #0088aa;
+  --r-sight-front: #00ffff;
+  --r-sight-rear: #003a44;
+  --r-glow: 0 0 12px rgba(0,229,255,.75);
+}
+
+.rifle-barrel{background:var(--r-barrel);box-shadow:inset 5px 0 0 var(--r-barrel-sh)}
+.rifle-receiver{background:var(--r-receiver);box-shadow:inset 0 -8px 0 var(--r-receiver-inset)}
+.rifle-stock{background:var(--r-stock)}
+.rifle-grip{background:var(--r-grip)}
+.rifle-muzzle{background:var(--r-muzzle);border:2px solid var(--r-muzzle-border);box-shadow:var(--r-glow)}
+.rifle-front-sight{background:var(--r-sight-front)}
+.rifle-rear-sight{background:var(--r-sight-rear)}
+
+/* У неона — общее свечение вокруг дула */
+body.skin-neon #rifleWrap{
+  filter:drop-shadow(0 0 8px rgba(0,229,255,.5));
+}
+
+.mode-badge{
+  position:absolute;top:10px;left:10px;z-index:20;
+  padding:6px 14px;border-radius:20px;
+  font-size:12px;font-weight:900;letter-spacing:1px;
+  background:rgba(20,25,32,.85);
+  border:1px solid rgba(255,255,255,.15);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  pointer-events:none;
+}
+.mode-badge.infinite{
+  background:linear-gradient(135deg,#5a2050,#3a1030);
+  border-color:#ff6b9d;color:#fff;
+  box-shadow:0 0 20px rgba(255,107,157,.4);
+}
+.mode-badge.hidden{display:none!important}
