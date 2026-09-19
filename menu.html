@@ -24,6 +24,14 @@ button{border:0;color:#fff;font-weight:800;font-size:16px;border-radius:14px;bac
 .dev{color:#9ca6b5;font-size:13px}
 .hidden{display:none!important}
 
+.menu-coins{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:14px;background:#11161e;border:1px solid #2a3039;font-weight:900;font-size:14px;color:#ffd23c;margin-bottom:16px}
+body[data-bg="light"] .menu-coins{background:#d0d6de;border-color:#a8b0ba;color:#8a6a00}
+
+.infinite-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:14px;border-radius:14px;background:linear-gradient(135deg,#3a1030,#2a0820);border:1px solid #7a3a6a;text-align:left;font-weight:700;color:#fff}
+.infinite-toggle span small{color:#ff8cd9;font-weight:400;display:block;margin-top:4px;font-size:11px}
+.infinite-toggle .toggle{background:#343c49}
+.infinite-toggle .toggle.on{background:#a43e3e}
+
 body[data-bg="dark"]  { background:#090c11; color:#fff; }
 body[data-bg="black"] { background:#000;    color:#fff; }
 body[data-bg="gray"]  { background:#2a2f38; color:#fff; }
@@ -83,10 +91,8 @@ body[data-bg="light"] .about-card{background:#e8ecf1;color:#111}
 body[data-bg="light"] .about-card ul{color:#3a4149}
 .about-card ul li{margin-bottom:6px}
 .about-card a{color:#6db3f2;text-decoration:none;font-weight:700}
-.about-card a:active{opacity:.7}
 .version-tag{display:inline-block;background:#ffd23c;color:#111;font-weight:900;font-size:13px;padding:3px 12px;border-radius:8px;margin-bottom:6px}
 
-/* Рейтинг */
 .rating-row{display:flex;align-items:center;gap:12px;padding:11px 14px;margin-bottom:8px;border-radius:12px;background:#11161e;border:1px solid #2a3039}
 body[data-bg="light"] .rating-row{background:#d0d6de;border-color:#a8b0ba;color:#111}
 .rating-row.top1{background:#3a3010;border-color:#ffd23c}
@@ -96,35 +102,93 @@ body[data-bg="light"] .rating-row{background:#d0d6de;border-color:#a8b0ba;color:
 .rating-name{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rating-score{font-weight:900;color:#ffd23c;font-size:16px}
 .rating-sub{font-size:11px;color:#8893a3;display:block;margin-top:2px}
+
+.mini-badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:900;letter-spacing:.5px;background:#2a3039;color:#aeb7c5}
+.mini-badge.infinite{background:#5a2050;color:#fff}
+.mini-badge.laser{background:#4a2020;color:#ff9a9a}
+
+/* ─── МАГАЗИН ─── */
+.shop-row{
+  display:flex;align-items:center;gap:12px;
+  padding:14px;margin-bottom:10px;border-radius:14px;
+  background:#11161e;border:1px solid #2a3039;
+  text-align:left;
+}
+body[data-bg="light"] .shop-row{background:#d0d6de;border-color:#a8b0ba;color:#111}
+.shop-preview{
+  width:60px;height:60px;border-radius:12px;flex:none;
+  background:linear-gradient(135deg,#1a2a35,#0d1820);
+  border:2px solid #2a3039;
+  position:relative;
+  overflow:hidden;
+}
+.shop-preview.default{
+  background:linear-gradient(135deg,#6f7987,#4d5663);
+}
+.shop-preview.neon{
+  background:linear-gradient(135deg,#0d1820,#0a4a55);
+  border-color:#00e5ff;
+  box-shadow:0 0 14px rgba(0,229,255,.6);
+}
+.shop-preview.neon::after{
+  content:"";position:absolute;inset:14px 6px;
+  background:linear-gradient(180deg,#00e5ff,#0088aa);
+  border-radius:4px;
+  box-shadow:0 0 10px #00e5ff;
+}
+.shop-info{flex:1;min-width:0}
+.shop-name{font-weight:900;font-size:15px}
+.shop-desc{font-size:11px;color:#8893a3;margin-top:2px}
+.shop-price{color:#ffd23c;font-weight:900;font-size:14px;margin-top:4px}
+.shop-buy{
+  padding:10px 16px!important;margin:0!important;font-size:13px!important;
+  background:#3a4150!important;
+  min-width:96px;
+}
+.shop-buy.owned{background:#2a5d3a!important;color:#c7f5d3!important}
+.shop-buy.active{background:#3a3010!important;color:#ffd23c!important;border:1px solid #ffd23c!important}
+.shop-buy:disabled{opacity:.55;cursor:not-allowed}
+.shop-empty{padding:24px 20px;text-align:center;color:#8893a3;border-radius:14px;background:#11161e;border:1px dashed #2a3039;font-size:14px}
+body[data-bg="light"] .shop-empty{background:#d0d6de;border-color:#a8b0ba}
 </style>
 </head>
 <body data-bg="dark">
 
 <div id="menuRoot">
 
+  <!-- ГЛАВНОЕ МЕНЮ -->
   <div id="screenMain" class="screen">
     <div class="menu-card">
       <div class="logo-mark">ТИР</div>
       <h1>Стрельбище</h1>
-      <p class="beta">BETA 0.7.1</p>
+      <p class="beta">BETA 0.8</p>
+
+      <div class="menu-coins">🪙 <span id="menuCoins">0</span></div>
 
       <button id="playBtn">ИГРАТЬ</button>
+
+      <div id="infiniteBlock" class="infinite-toggle hidden">
+        <span>♾ Бесконечный<br><small>8 промахов — конец. Без лимита очков.</small></span>
+        <button id="infiniteToggle" class="toggle off">ВЫКЛ</button>
+      </div>
+
       <button id="ratingBtn" class="secondary">🏆 РЕЙТИНГ</button>
+      <button id="shopBtn" class="secondary">🛒 МАГАЗИН</button>
       <button id="historyBtn" class="secondary">ИСТОРИЯ</button>
       <button id="aboutBtn" class="secondary">ОБ ИГРЕ</button>
       <button id="settingsBtn" class="secondary">НАСТРОЙКИ</button>
 
       <div class="setting">
-        <span>Лазерный целеуказатель<br><small>−25% к очкам при включении</small></span>
+        <span>Лазерный целеуказатель<br><small>−35% к очкам при включении</small></span>
         <button id="laserToggle" class="toggle off">ВЫКЛ</button>
       </div>
     </div>
   </div>
 
+  <!-- НАСТРОЙКИ -->
   <div id="screenSettings" class="screen hidden">
     <div class="menu-card">
       <h2 class="settings-title">⚙️ Настройки</h2>
-
       <div class="setting-block">
         <h3>🔊 Звук</h3>
         <div class="vol-row">
@@ -132,7 +196,6 @@ body[data-bg="light"] .rating-row{background:#d0d6de;border-color:#a8b0ba;color:
           <span class="vol-val" id="volVal">70%</span>
         </div>
       </div>
-
       <div class="setting-block">
         <h3>🎨 Фон</h3>
         <div class="bg-row">
@@ -143,75 +206,75 @@ body[data-bg="light"] .rating-row{background:#d0d6de;border-color:#a8b0ba;color:
           <button class="bg-btn color-confetti hidden" id="bgConfettiBtn" data-bg="confetti">🌸 Конфети</button>
         </div>
       </div>
-
       <button id="devBtn" class="dev-btn">🚧 В разработке</button>
-
       <button id="backFromSettings" class="secondary" style="margin-top:20px">← НАЗАД</button>
     </div>
   </div>
 
+  <!-- ОБ ИГРЕ -->
   <div id="screenAbout" class="screen hidden">
     <div class="about-card">
-      <div style="text-align:center"><span class="version-tag">BETA 0.7.1</span></div>
+      <div style="text-align:center"><span class="version-tag">BETA 0.8</span></div>
       <h2>О игре</h2>
       <p style="color:#aeb7c5;font-size:14px;text-align:center;margin-top:0">
         Тир / Стрельбище — браузерная игра на чистом HTML/CSS/JS
       </p>
-
-      <h3>✨ НОВОЕ В 0.7.1</h3>
+      <h3>✨ НОВОЕ В 0.8</h3>
       <ul>
-        <li>🏆 Общий рейтинг игроков (топ-10)</li>
-        <li>📡 Отправка результатов на сервер Cloudflare</li>
-        <li>🎁 Выдача стикерпака теперь через сервер</li>
-        <li>💥 Мишени разлетаются на осколки</li>
-        <li>✨ Золотая подсветка при росте комбо ×1.0</li>
+        <li>♾ Бесконечный режим — открывается после первой победы</li>
+        <li>🪙 Золотые монеты: 1 за каждые 250 очков</li>
+        <li>🛒 Магазин: первый скин «Неон» за 45 монет</li>
+        <li>🎯 Штраф лазера усилен до −35%</li>
+        <li>📈 В бесконечном сложность растёт непрерывно</li>
+        <li>📊 В истории и рейтинге видно режим и лазер</li>
       </ul>
-
-      <h3>✨ НОВОЕ В 0.6</h3>
+      <h3>✨ РАНЕЕ</h3>
       <ul>
-        <li>📜 История последних 10 забегов</li>
-        <li>🏠 Кнопка выхода в меню прямо из игры</li>
-        <li>📱 Интеграция с Telegram Mini App</li>
+        <li>Общий рейтинг, история, интеграция с ботом</li>
+        <li>Стикерпак в личку за победу</li>
+        <li>Спецэффекты, звуки, пасхалка, фоны</li>
       </ul>
-
-      <h3>✨ НОВОЕ В 0.5</h3>
-      <ul>
-        <li>Экран Настроек</li>
-        <li>Регулировка громкости звука</li>
-        <li>Переключение фона</li>
-        <li>🥚 Добавлено <b>пасхальное яйцо</b> — найди его сам!</li>
-      </ul>
-
       <h3>👤 СОЗДАТЕЛИ</h3>
       <ul>
-        <li><b>DeepSeek</b> — архитектура, рефакторинг, фиксы, серверная часть</li>
-        <li><b>ChatGPT</b> — первоначальная версия проекта (BETA 0.3)</li>
+        <li><b>DeepSeek</b> — архитектура, серверная часть, фичи</li>
+        <li><b>ChatGPT</b> — первоначальная версия (BETA 0.3)</li>
         <li><b>Hen_Nyasha</b> — идея, баланс, тестирование — <a href="https://t.me/Hen_Nyasha" target="_blank">t.me/Hen_Nyasha</a></li>
       </ul>
-
       <button id="backFromAbout" class="secondary" style="margin-top:20px;width:100%">← НАЗАД</button>
     </div>
   </div>
 
+  <!-- ИСТОРИЯ -->
   <div id="screenHistory" class="screen hidden">
     <div class="about-card">
       <h2>📜 История забегов</h2>
-      <p style="color:#aeb7c5;font-size:13px;text-align:center;margin-top:0">
-        Последние 10 попыток
-      </p>
+      <p style="color:#aeb7c5;font-size:13px;text-align:center;margin-top:0">Последние 10 попыток</p>
       <div id="historyList" style="margin-top:16px"></div>
       <button id="backFromHistory" class="secondary" style="margin-top:20px;width:100%">← НАЗАД</button>
     </div>
   </div>
 
+  <!-- РЕЙТИНГ -->
   <div id="screenRating" class="screen hidden">
     <div class="about-card">
       <h2>🏆 Рейтинг</h2>
-      <p style="color:#aeb7c5;font-size:13px;text-align:center;margin-top:0">
-        Топ-10 игроков за всё время
-      </p>
+      <p style="color:#aeb7c5;font-size:13px;text-align:center;margin-top:0">Топ-10 игроков за всё время</p>
       <div id="ratingList" style="margin-top:16px"></div>
       <button id="backFromRating" class="secondary" style="margin-top:20px;width:100%">← НАЗАД</button>
+    </div>
+  </div>
+
+  <!-- МАГАЗИН -->
+  <div id="screenShop" class="screen hidden">
+    <div class="about-card">
+      <h2>🛒 Магазин</h2>
+      <p style="color:#ffd23c;font-size:15px;text-align:center;margin-top:0">
+        🪙 У тебя: <b id="shopCoins">0</b>
+      </p>
+      <div id="shopList" style="margin-top:16px">
+        <p style="text-align:center;color:#8893a3;padding:20px">Загрузка...</p>
+      </div>
+      <button id="backFromShop" class="secondary" style="margin-top:20px;width:100%">← НАЗАД</button>
     </div>
   </div>
 
@@ -220,18 +283,33 @@ body[data-bg="light"] .rating-row{background:#d0d6de;border-color:#a8b0ba;color:
 <div id="toast" class="toast hidden"></div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   ★ АДРЕС СЕРВЕРА — должен совпадать с SERVER_URL в game.js
-   ═══════════════════════════════════════════════════════════════ */
 const SERVER_URL = 'https://tir-worker-paw31.pecerskijnikit.workers.dev';
 
 const send = (type, payload) => {
-  if (window.parent === window) {
-    console.warn('menu.html открыт напрямую. Открывай index.html!');
-    return;
-  }
+  if (window.parent === window) return;
   window.parent.postMessage({ source: 'menu', type, payload }, '*');
 };
+
+/* ★ Получаем initData от Telegram (если запущено из Mini App) */
+function getInitData(){
+  try {
+    return window.Telegram?.WebApp?.initData || '';
+  } catch(e){ return ''; }
+}
+
+/* Универсальный запрос к серверу с авторизацией */
+async function apiCall(path, body){
+  const initData = getInitData();
+  const response = await fetch(SERVER_URL + path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': initData ? ('tma ' + initData) : ''
+    },
+    body: JSON.stringify(body || {})
+  });
+  return await response.json();
+}
 
 const screens = {
   main:     document.getElementById('screenMain'),
@@ -239,6 +317,7 @@ const screens = {
   about:    document.getElementById('screenAbout'),
   history:  document.getElementById('screenHistory'),
   rating:   document.getElementById('screenRating'),
+  shop:     document.getElementById('screenShop'),
 };
 function showScreen(name){
   for (const k in screens) screens[k].classList.toggle('hidden', k !== name);
@@ -253,22 +332,29 @@ function showToast(text, ms = 2400){
   toastTimer = setTimeout(() => toastEl.classList.add('hidden'), ms);
 }
 
+/* ─── МОНЕТЫ ─── */
+function updateCoinsDisplay(){
+  const coins = parseInt(localStorage.getItem('tir_coins') || '0', 10);
+  document.getElementById('menuCoins').textContent = coins;
+  document.getElementById('shopCoins').textContent = coins;
+}
+updateCoinsDisplay();
+send('requestCoins');
+
+/* ─── КНОПКИ ─── */
 document.getElementById('playBtn').onclick = () => send('startGame');
-document.getElementById('historyBtn').onclick = () => {
-  renderHistory();
-  showScreen('history');
-};
+document.getElementById('historyBtn').onclick = () => { renderHistory(); showScreen('history'); };
 document.getElementById('backFromHistory').onclick = () => showScreen('main');
-document.getElementById('ratingBtn').onclick = () => {
-  renderRating();
-  showScreen('rating');
-};
+document.getElementById('ratingBtn').onclick = () => { renderRating(); showScreen('rating'); };
 document.getElementById('backFromRating').onclick = () => showScreen('main');
+document.getElementById('shopBtn').onclick = () => { renderShop(); showScreen('shop'); };
+document.getElementById('backFromShop').onclick = () => showScreen('main');
 document.getElementById('aboutBtn').onclick = () => showScreen('about');
 document.getElementById('backFromAbout').onclick = () => showScreen('main');
 document.getElementById('settingsBtn').onclick = () => showScreen('settings');
 document.getElementById('backFromSettings').onclick = () => showScreen('main');
 
+/* ─── ЛАЗЕР ─── */
 const laserBtn = document.getElementById('laserToggle');
 laserBtn.onclick = () => {
   const newState = !laserBtn.classList.contains('on');
@@ -278,6 +364,28 @@ laserBtn.onclick = () => {
   send('setLaser', newState);
 };
 
+/* ─── БЕСКОНЕЧНЫЙ РЕЖИМ ─── */
+const infiniteBlock = document.getElementById('infiniteBlock');
+const infiniteToggle = document.getElementById('infiniteToggle');
+function refreshInfiniteBlock(){
+  const unlocked = localStorage.getItem('tir_infiniteUnlocked') === '1';
+  infiniteBlock.classList.toggle('hidden', !unlocked);
+  const isOn = localStorage.getItem('tir_infiniteMode') === '1';
+  infiniteToggle.textContent = isOn ? 'ВКЛ' : 'ВЫКЛ';
+  infiniteToggle.classList.toggle('on', isOn);
+  infiniteToggle.classList.toggle('off', !isOn);
+}
+refreshInfiniteBlock();
+infiniteToggle.onclick = () => {
+  const newState = !infiniteToggle.classList.contains('on');
+  infiniteToggle.textContent = newState ? 'ВКЛ' : 'ВЫКЛ';
+  infiniteToggle.classList.toggle('on', newState);
+  infiniteToggle.classList.toggle('off', !newState);
+  localStorage.setItem('tir_infiniteMode', newState ? '1' : '0');
+  send('setInfiniteMode', newState);
+};
+
+/* ─── ЗВУК ─── */
 const volSlider = document.getElementById('volSlider');
 const volVal = document.getElementById('volVal');
 function applyVolume(v){
@@ -290,6 +398,7 @@ volSlider.oninput = () => applyVolume(+volSlider.value);
 const savedVol = localStorage.getItem('tir_volume');
 applyVolume(savedVol !== null ? +savedVol : 70);
 
+/* ─── ФОН ─── */
 const bgButtons = document.querySelectorAll('.bg-btn');
 function applyBg(name){
   document.body.dataset.bg = name;
@@ -303,39 +412,219 @@ document.body.dataset.bg = savedBg;
 bgButtons.forEach(b => b.classList.toggle('active', b.dataset.bg === savedBg));
 send('setBackground', savedBg);
 
+/* ─── ПАСХАЛКА ─── */
 const devBtn = document.getElementById('devBtn');
 const bgConfettiBtn = document.getElementById('bgConfettiBtn');
 let devClicks = 0;
 let devResetTimer = null;
-
-if (localStorage.getItem('tir_easterEgg') === '1'){
-  bgConfettiBtn.classList.remove('hidden');
-}
-
+if (localStorage.getItem('tir_easterEgg') === '1') bgConfettiBtn.classList.remove('hidden');
 devBtn.onclick = () => {
   devClicks++;
   clearTimeout(devResetTimer);
   devResetTimer = setTimeout(() => { devClicks = 0; }, 3000);
-
   if (devClicks >= 10){
     devClicks = 0;
     localStorage.setItem('tir_easterEgg', '1');
     bgConfettiBtn.classList.remove('hidden');
-    showToast('🎉 Пасхалка открыта! Новый фон доступен.', 3000);
+    showToast('🎉 Пасхалка открыта!', 3000);
   }
 };
 
+  <!-- ИСТОРИЯ -->
+  <div id="screenHistory" class="screen hidden">
+    <div class="about-card">
+      <h2>📜 История забегов</h2>
+      <p style="color:#aeb7c5;font-size:13px;text-align:center;margin-top:0">Последние 10 попыток</p>
+      <div id="historyList" style="margin-top:16px"></div>
+      <button id="backFromHistory" class="secondary" style="margin-top:20px;width:100%">← НАЗАД</button>
+    </div>
+  </div>
+
+  <!-- РЕЙТИНГ -->
+  <div id="screenRating" class="screen hidden">
+    <div class="about-card">
+      <h2>🏆 Рейтинг</h2>
+      <p style="color:#aeb7c5;font-size:13px;text-align:center;margin-top:0">Топ-10 игроков за всё время</p>
+      <div id="ratingList" style="margin-top:16px"></div>
+      <button id="backFromRating" class="secondary" style="margin-top:20px;width:100%">← НАЗАД</button>
+    </div>
+  </div>
+
+  <!-- МАГАЗИН -->
+  <div id="screenShop" class="screen hidden">
+    <div class="about-card">
+      <h2>🛒 Магазин</h2>
+      <p style="color:#ffd23c;font-size:15px;text-align:center;margin-top:0">
+        🪙 У тебя: <b id="shopCoins">0</b>
+      </p>
+      <div id="shopList" style="margin-top:16px">
+        <p style="text-align:center;color:#8893a3;padding:20px">Загрузка...</p>
+      </div>
+      <button id="backFromShop" class="secondary" style="margin-top:20px;width:100%">← НАЗАД</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+const SERVER_URL = 'https://tir-worker-paw31.pecerskijnikit.workers.dev';
+
+const send = (type, payload) => {
+  if (window.parent === window) return;
+  window.parent.postMessage({ source: 'menu', type, payload }, '*');
+};
+
+/* ★ Получаем initData от Telegram (если запущено из Mini App) */
+function getInitData(){
+  try {
+    return window.Telegram?.WebApp?.initData || '';
+  } catch(e){ return ''; }
+}
+
+/* Универсальный запрос к серверу с авторизацией */
+async function apiCall(path, body){
+  const initData = getInitData();
+  const response = await fetch(SERVER_URL + path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': initData ? ('tma ' + initData) : ''
+    },
+    body: JSON.stringify(body || {})
+  });
+  return await response.json();
+}
+
+const screens = {
+  main:     document.getElementById('screenMain'),
+  settings: document.getElementById('screenSettings'),
+  about:    document.getElementById('screenAbout'),
+  history:  document.getElementById('screenHistory'),
+  rating:   document.getElementById('screenRating'),
+  shop:     document.getElementById('screenShop'),
+};
+function showScreen(name){
+  for (const k in screens) screens[k].classList.toggle('hidden', k !== name);
+}
+
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+function showToast(text, ms = 2400){
+  toastEl.textContent = text;
+  toastEl.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.add('hidden'), ms);
+}
+
+/* ─── МОНЕТЫ ─── */
+function updateCoinsDisplay(){
+  const coins = parseInt(localStorage.getItem('tir_coins') || '0', 10);
+  document.getElementById('menuCoins').textContent = coins;
+  document.getElementById('shopCoins').textContent = coins;
+}
+updateCoinsDisplay();
+send('requestCoins');
+
+/* ─── КНОПКИ ─── */
+document.getElementById('playBtn').onclick = () => send('startGame');
+document.getElementById('historyBtn').onclick = () => { renderHistory(); showScreen('history'); };
+document.getElementById('backFromHistory').onclick = () => showScreen('main');
+document.getElementById('ratingBtn').onclick = () => { renderRating(); showScreen('rating'); };
+document.getElementById('backFromRating').onclick = () => showScreen('main');
+document.getElementById('shopBtn').onclick = () => { renderShop(); showScreen('shop'); };
+document.getElementById('backFromShop').onclick = () => showScreen('main');
+document.getElementById('aboutBtn').onclick = () => showScreen('about');
+document.getElementById('backFromAbout').onclick = () => showScreen('main');
+document.getElementById('settingsBtn').onclick = () => showScreen('settings');
+document.getElementById('backFromSettings').onclick = () => showScreen('main');
+
+/* ─── ЛАЗЕР ─── */
+const laserBtn = document.getElementById('laserToggle');
+laserBtn.onclick = () => {
+  const newState = !laserBtn.classList.contains('on');
+  laserBtn.textContent = newState ? 'ВКЛ' : 'ВЫКЛ';
+  laserBtn.classList.toggle('on', newState);
+  laserBtn.classList.toggle('off', !newState);
+  send('setLaser', newState);
+};
+
+/* ─── БЕСКОНЕЧНЫЙ РЕЖИМ ─── */
+const infiniteBlock = document.getElementById('infiniteBlock');
+const infiniteToggle = document.getElementById('infiniteToggle');
+function refreshInfiniteBlock(){
+  const unlocked = localStorage.getItem('tir_infiniteUnlocked') === '1';
+  infiniteBlock.classList.toggle('hidden', !unlocked);
+  const isOn = localStorage.getItem('tir_infiniteMode') === '1';
+  infiniteToggle.textContent = isOn ? 'ВКЛ' : 'ВЫКЛ';
+  infiniteToggle.classList.toggle('on', isOn);
+  infiniteToggle.classList.toggle('off', !isOn);
+}
+refreshInfiniteBlock();
+infiniteToggle.onclick = () => {
+  const newState = !infiniteToggle.classList.contains('on');
+  infiniteToggle.textContent = newState ? 'ВКЛ' : 'ВЫКЛ';
+  infiniteToggle.classList.toggle('on', newState);
+  infiniteToggle.classList.toggle('off', !newState);
+  localStorage.setItem('tir_infiniteMode', newState ? '1' : '0');
+  send('setInfiniteMode', newState);
+};
+
+/* ─── ЗВУК ─── */
+const volSlider = document.getElementById('volSlider');
+const volVal = document.getElementById('volVal');
+function applyVolume(v){
+  volSlider.value = v;
+  volVal.textContent = v + '%';
+  send('setVolume', v / 100);
+  localStorage.setItem('tir_volume', v);
+}
+volSlider.oninput = () => applyVolume(+volSlider.value);
+const savedVol = localStorage.getItem('tir_volume');
+applyVolume(savedVol !== null ? +savedVol : 70);
+
+/* ─── ФОН ─── */
+const bgButtons = document.querySelectorAll('.bg-btn');
+function applyBg(name){
+  document.body.dataset.bg = name;
+  bgButtons.forEach(b => b.classList.toggle('active', b.dataset.bg === name));
+  send('setBackground', name);
+  localStorage.setItem('tir_bg', name);
+}
+bgButtons.forEach(btn => { btn.onclick = () => applyBg(btn.dataset.bg); });
+const savedBg = localStorage.getItem('tir_bg') || 'dark';
+document.body.dataset.bg = savedBg;
+bgButtons.forEach(b => b.classList.toggle('active', b.dataset.bg === savedBg));
+send('setBackground', savedBg);
+
+/* ─── ПАСХАЛКА ─── */
+const devBtn = document.getElementById('devBtn');
+const bgConfettiBtn = document.getElementById('bgConfettiBtn');
+let devClicks = 0;
+let devResetTimer = null;
+if (localStorage.getItem('tir_easterEgg') === '1') bgConfettiBtn.classList.remove('hidden');
+devBtn.onclick = () => {
+  devClicks++;
+  clearTimeout(devResetTimer);
+  devResetTimer = setTimeout(() => { devClicks = 0; }, 3000);
+  if (devClicks >= 10){
+    devClicks = 0;
+    localStorage.setItem('tir_easterEgg', '1');
+    bgConfettiBtn.classList.remove('hidden');
+    showToast('🎉 Пасхалка открыта!', 3000);
+  }
+};
+
+/* ─── ИСТОРИЯ ─── */
 function renderHistory(){
   const list = document.getElementById('historyList');
   const data = JSON.parse(localStorage.getItem('tir_history') || '[]');
-
   if (data.length === 0){
     list.innerHTML = '<p style="text-align:center;color:#8893a3;padding:20px">Пока пусто. Сыграй первый забег!</p>';
     return;
   }
-
   const bestScore = Math.max(...data.map(r => r.score));
-
   list.innerHTML = data.map((r) => {
     const isBest = r.score === bestScore && r.win;
     const medal = isBest ? ' 🏆' : '';
@@ -343,70 +632,180 @@ function renderHistory(){
     const mins = Math.floor(r.duration / 60);
     const secs = r.duration % 60;
     const timeStr = mins > 0 ? `${mins}м ${secs}с` : `${secs}с`;
-
+    const modeBadge = r.mode === 'infinite' ? '<span class="mini-badge infinite">♾ БЕСК</span>' : '<span class="mini-badge">ОБЫЧН</span>';
+    const laserBadge = r.laser ? '<span class="mini-badge laser">🎯 ЛАЗЕР</span>' : '';
     return `
       <div style="padding:10px 12px;margin-bottom:8px;border-radius:12px;background:${isBest ? '#2a3a20' : '#11161e'};border:1px solid ${isBest ? '#5a8a3a' : '#2a3039'}">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <b style="font-size:16px">${r.score}${medal}${winBadge}</b>
           <span style="color:#8893a3;font-size:12px">${r.date}</span>
         </div>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">${modeBadge}${laserBadge}</div>
         <div style="display:flex;gap:14px;color:#aeb7c5;font-size:12px;margin-top:6px;flex-wrap:wrap">
-          <span>⏱ ${timeStr}</span>
-          <span>🔫 ${r.shots}</span>
-          <span>⚡ ${r.ults} ULT</span>
-          <span>×${r.maxCombo}</span>
+          <span>⏱ ${timeStr}</span><span>🔫 ${r.shots}</span><span>⚡ ${r.ults} ULT</span><span>×${r.maxCombo}</span>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ★ РЕЙТИНГ — загружает топ-10 с сервера
-   ═══════════════════════════════════════════════════════════════ */
+/* ─── РЕЙТИНГ ─── */
 async function renderRating(){
   const list = document.getElementById('ratingList');
   list.innerHTML = '<p style="text-align:center;color:#8893a3;padding:20px">Загрузка...</p>';
-
   try {
     const response = await fetch(`${SERVER_URL}/api/leaderboard`);
     const data = await response.json();
-
     if (!data.ok || !data.leaders || data.leaders.length === 0){
-      list.innerHTML = '<p style="text-align:center;color:#8893a3;padding:20px">Пока никто не играл. Будь первым!</p>';
+      list.innerHTML = '<p style="text-align:center;color:#8893a3;padding:20px">Пока никто не играл.</p>';
       return;
     }
-
     list.innerHTML = data.leaders.map(l => {
       let medal, rowClass;
       if (l.rank === 1){ medal = '🥇'; rowClass = 'top1'; }
       else if (l.rank === 2){ medal = '🥈'; rowClass = 'top2'; }
       else if (l.rank === 3){ medal = '🥉'; rowClass = 'top3'; }
       else { medal = '#' + l.rank; rowClass = ''; }
-
       const name = l.username ? '@' + l.username : (l.first_name || 'Игрок');
+      const modeBadge = l.mode === 'infinite' ? '<span class="mini-badge infinite">♾</span> ' : '';
+      const laserBadge = l.laser ? '<span class="mini-badge laser">🎯</span> ' : '';
       return `
         <div class="rating-row ${rowClass}">
           <span class="rating-rank">${medal}</span>
-          <div class="rating-name">
-            ${name}
-            <span class="rating-sub">Забегов: ${l.total_runs} · Комбо ×${l.best_combo}</span>
+          <div class="rating-name">${name}
+            <span class="rating-sub">${modeBadge}${laserBadge}Забегов: ${l.total_runs} · Комбо ×${l.best_combo}</span>
           </div>
           <span class="rating-score">${l.best_score}</span>
-        </div>
-      `;
+        </div>`;
     }).join('');
-
   } catch (err){
-    console.error('[tir] Ошибка загрузки рейтинга:', err);
-    list.innerHTML = '<p style="text-align:center;color:#a43e3e;padding:20px">Не удалось загрузить. Проверь интернет.</p>';
+    list.innerHTML = '<p style="text-align:center;color:#a43e3e;padding:20px">Не удалось загрузить.</p>';
   }
 }
 
+/* ─── МАГАЗИН ─── */
+async function renderShop(){
+  const list = document.getElementById('shopList');
+  list.innerHTML = '<p style="text-align:center;color:#8893a3;padding:20px">Загрузка...</p>';
+  updateCoinsDisplay();
+
+  try {
+    const data = await apiCall('/api/skins', {});
+    if (!data.ok){
+      list.innerHTML = '<p style="text-align:center;color:#a43e3e;padding:20px">Не удалось загрузить магазин. Открой через Telegram.</p>';
+      return;
+    }
+
+    // Обновляем монеты с сервера
+    if (typeof data.coins === 'number'){
+      localStorage.setItem('tir_coins', String(data.coins));
+      updateCoinsDisplay();
+    }
+
+    list.innerHTML = data.skins.map(skin => {
+      const previewClass = skin.id === 'default' ? 'default' : (skin.id === 'neon' ? 'neon' : '');
+      let btnText, btnClass, disabled = false;
+      if (skin.active){
+        btnText = '✅ НАДЕТ'; btnClass = 'owned active'; disabled = true;
+      } else if (skin.owned){
+        btnText = 'НАДЕТЬ'; btnClass = 'owned';
+      } else if (skin.price === 0){
+        btnText = 'БЕСПЛАТНО'; btnClass = '';
+      } else {
+        btnText = `КУПИТЬ · 🪙${skin.price}`; btnClass = '';
+      }
+
+      return `
+        <div class="shop-row">
+          <div class="shop-preview ${previewClass}"></div>
+          <div class="shop-info">
+            <div class="shop-name">${skin.name}</div>
+            <div class="shop-desc">${skin.description || ''}</div>
+            ${!skin.owned && skin.price > 0 ? `<div class="shop-price">🪙 ${skin.price}</div>` : ''}
+          </div>
+          <button class="shop-buy ${btnClass}"
+            data-skin="${skin.id}"
+            data-action="${skin.active ? 'none' : (skin.owned ? 'equip' : 'buy')}"
+            data-price="${skin.price}"
+            ${disabled ? 'disabled' : ''}>
+            ${btnText}
+          </button>
+        </div>`;
+    }).join('');
+
+    // Обработчики кнопок
+    list.querySelectorAll('.shop-buy').forEach(btn => {
+      btn.onclick = async () => {
+        const action = btn.dataset.action;
+        const skinId = btn.dataset.skin;
+        const price = parseInt(btn.dataset.price || '0', 10);
+
+        if (action === 'none') return;
+
+        if (action === 'buy'){
+          const current = parseInt(localStorage.getItem('tir_coins') || '0', 10);
+          if (current < price){
+            showToast('🪙 Не хватает монет', 2200);
+            return;
+          }
+          btn.disabled = true;
+          btn.textContent = '⏳...';
+          const resp = await apiCall('/api/buy-skin', { skin_id: skinId });
+          if (resp.ok){
+            localStorage.setItem('tir_coins', String(resp.new_balance || current - price));
+            showToast('🎉 Скин куплен!', 2200);
+            // Сразу надеваем
+            const eq = await apiCall('/api/set-skin', { skin_id: skinId });
+            if (eq.ok){
+              localStorage.setItem('tir_activeSkin', skinId);
+              send('setSkin', skinId);
+            }
+            renderShop();
+          } else if (resp.error === 'not enough coins'){
+            showToast('🪙 Не хватает монет', 2200);
+            btn.disabled = false; renderShop();
+          } else if (resp.error === 'already owned'){
+            showToast('Уже куплено', 1800);
+            renderShop();
+          } else {
+            showToast('Ошибка покупки', 2200);
+            btn.disabled = false;
+          }
+          return;
+        }
+
+        if (action === 'equip'){
+          btn.disabled = true;
+          btn.textContent = '⏳...';
+          const resp = await apiCall('/api/set-skin', { skin_id: skinId });
+          if (resp.ok){
+            localStorage.setItem('tir_activeSkin', skinId);
+            send('setSkin', skinId);
+            showToast('✅ Скин надет', 1800);
+            renderShop();
+          } else {
+            showToast('Ошибка', 2000);
+            btn.disabled = false;
+          }
+        }
+      };
+    });
+  } catch (err){
+    console.error(err);
+    list.innerHTML = '<p style="text-align:center;color:#a43e3e;padding:20px">Сервер недоступен.</p>';
+  }
+}
+
+/* ─── СООБЩЕНИЯ ОТ ИГРЫ ─── */
 window.addEventListener('message', (e) => {
   if (!e.data || e.data.source !== 'game') return;
-  if (e.data.type === 'resetUI'){
-    showScreen('main');
+  if (e.data.type === 'resetUI') showScreen('main');
+  if (e.data.type === 'coins'){
+    localStorage.setItem('tir_coins', String(e.data.payload));
+    updateCoinsDisplay();
+  }
+  if (e.data.type === 'unlockInfinite'){
+    refreshInfiniteBlock();
+    showToast('♾ Бесконечный режим разблокирован!', 3500);
   }
 });
 </script>
