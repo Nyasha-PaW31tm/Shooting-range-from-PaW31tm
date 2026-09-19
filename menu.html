@@ -85,6 +85,17 @@ body[data-bg="light"] .about-card ul{color:#3a4149}
 .about-card a{color:#6db3f2;text-decoration:none;font-weight:700}
 .about-card a:active{opacity:.7}
 .version-tag{display:inline-block;background:#ffd23c;color:#111;font-weight:900;font-size:13px;padding:3px 12px;border-radius:8px;margin-bottom:6px}
+
+/* Рейтинг */
+.rating-row{display:flex;align-items:center;gap:12px;padding:11px 14px;margin-bottom:8px;border-radius:12px;background:#11161e;border:1px solid #2a3039}
+body[data-bg="light"] .rating-row{background:#d0d6de;border-color:#a8b0ba;color:#111}
+.rating-row.top1{background:#3a3010;border-color:#ffd23c}
+.rating-row.top2{background:#2a3039;border-color:#b8bec6}
+.rating-row.top3{background:#3a2818;border-color:#c08040}
+.rating-rank{font-size:18px;font-weight:900;min-width:34px;text-align:center;color:#ffd23c}
+.rating-name{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rating-score{font-weight:900;color:#ffd23c;font-size:16px}
+.rating-sub{font-size:11px;color:#8893a3;display:block;margin-top:2px}
 </style>
 </head>
 <body data-bg="dark">
@@ -95,9 +106,10 @@ body[data-bg="light"] .about-card ul{color:#3a4149}
     <div class="menu-card">
       <div class="logo-mark">ТИР</div>
       <h1>Стрельбище</h1>
-      <p class="beta">BETA 0.6</p>
+      <p class="beta">BETA 0.7.1</p>
 
       <button id="playBtn">ИГРАТЬ</button>
+      <button id="ratingBtn" class="secondary">🏆 РЕЙТИНГ</button>
       <button id="historyBtn" class="secondary">ИСТОРИЯ</button>
       <button id="aboutBtn" class="secondary">ОБ ИГРЕ</button>
       <button id="settingsBtn" class="secondary">НАСТРОЙКИ</button>
@@ -140,23 +152,31 @@ body[data-bg="light"] .about-card ul{color:#3a4149}
 
   <div id="screenAbout" class="screen hidden">
     <div class="about-card">
-      <div style="text-align:center"><span class="version-tag">BETA 0.6</span></div>
+      <div style="text-align:center"><span class="version-tag">BETA 0.7.1</span></div>
       <h2>О игре</h2>
       <p style="color:#aeb7c5;font-size:14px;text-align:center;margin-top:0">
         Тир / Стрельбище — браузерная игра на чистом HTML/CSS/JS
       </p>
 
+      <h3>✨ НОВОЕ В 0.7.1</h3>
+      <ul>
+        <li>🏆 Общий рейтинг игроков (топ-10)</li>
+        <li>📡 Отправка результатов на сервер Cloudflare</li>
+        <li>🎁 Выдача стикерпака теперь через сервер</li>
+        <li>💥 Мишени разлетаются на осколки</li>
+        <li>✨ Золотая подсветка при росте комбо ×1.0</li>
+      </ul>
+
       <h3>✨ НОВОЕ В 0.6</h3>
       <ul>
         <li>📜 История последних 10 забегов</li>
         <li>🏠 Кнопка выхода в меню прямо из игры</li>
-        <li>🎁 Награда за победу — ссылка на стикерпак</li>
         <li>📱 Интеграция с Telegram Mini App</li>
       </ul>
 
       <h3>✨ НОВОЕ В 0.5</h3>
       <ul>
-        <li>Экран <b>Настроек</b></li>
+        <li>Экран Настроек</li>
         <li>Регулировка громкости звука</li>
         <li>Переключение фона</li>
         <li>🥚 Добавлено <b>пасхальное яйцо</b> — найди его сам!</li>
@@ -164,7 +184,7 @@ body[data-bg="light"] .about-card ul{color:#3a4149}
 
       <h3>👤 СОЗДАТЕЛИ</h3>
       <ul>
-        <li><b>DeepSeek</b> — архитектура, рефакторинг, фиксы, меню, настройки</li>
+        <li><b>DeepSeek</b> — архитектура, рефакторинг, фиксы, серверная часть</li>
         <li><b>ChatGPT</b> — первоначальная версия проекта (BETA 0.3)</li>
         <li><b>Hen_Nyasha</b> — идея, баланс, тестирование — <a href="https://t.me/Hen_Nyasha" target="_blank">t.me/Hen_Nyasha</a></li>
       </ul>
@@ -184,11 +204,27 @@ body[data-bg="light"] .about-card ul{color:#3a4149}
     </div>
   </div>
 
+  <div id="screenRating" class="screen hidden">
+    <div class="about-card">
+      <h2>🏆 Рейтинг</h2>
+      <p style="color:#aeb7c5;font-size:13px;text-align:center;margin-top:0">
+        Топ-10 игроков за всё время
+      </p>
+      <div id="ratingList" style="margin-top:16px"></div>
+      <button id="backFromRating" class="secondary" style="margin-top:20px;width:100%">← НАЗАД</button>
+    </div>
+  </div>
+
 </div>
 
 <div id="toast" class="toast hidden"></div>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════
+   ★ АДРЕС СЕРВЕРА — должен совпадать с SERVER_URL в game.js
+   ═══════════════════════════════════════════════════════════════ */
+const SERVER_URL = 'https://tir-worker-paw31.pecerskijnikit.workers.dev';
+
 const send = (type, payload) => {
   if (window.parent === window) {
     console.warn('menu.html открыт напрямую. Открывай index.html!');
@@ -202,6 +238,7 @@ const screens = {
   settings: document.getElementById('screenSettings'),
   about:    document.getElementById('screenAbout'),
   history:  document.getElementById('screenHistory'),
+  rating:   document.getElementById('screenRating'),
 };
 function showScreen(name){
   for (const k in screens) screens[k].classList.toggle('hidden', k !== name);
@@ -222,6 +259,11 @@ document.getElementById('historyBtn').onclick = () => {
   showScreen('history');
 };
 document.getElementById('backFromHistory').onclick = () => showScreen('main');
+document.getElementById('ratingBtn').onclick = () => {
+  renderRating();
+  showScreen('rating');
+};
+document.getElementById('backFromRating').onclick = () => showScreen('main');
 document.getElementById('aboutBtn').onclick = () => showScreen('about');
 document.getElementById('backFromAbout').onclick = () => showScreen('main');
 document.getElementById('settingsBtn').onclick = () => showScreen('settings');
@@ -317,6 +359,48 @@ function renderHistory(){
       </div>
     `;
   }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ★ РЕЙТИНГ — загружает топ-10 с сервера
+   ═══════════════════════════════════════════════════════════════ */
+async function renderRating(){
+  const list = document.getElementById('ratingList');
+  list.innerHTML = '<p style="text-align:center;color:#8893a3;padding:20px">Загрузка...</p>';
+
+  try {
+    const response = await fetch(`${SERVER_URL}/api/leaderboard`);
+    const data = await response.json();
+
+    if (!data.ok || !data.leaders || data.leaders.length === 0){
+      list.innerHTML = '<p style="text-align:center;color:#8893a3;padding:20px">Пока никто не играл. Будь первым!</p>';
+      return;
+    }
+
+    list.innerHTML = data.leaders.map(l => {
+      let medal, rowClass;
+      if (l.rank === 1){ medal = '🥇'; rowClass = 'top1'; }
+      else if (l.rank === 2){ medal = '🥈'; rowClass = 'top2'; }
+      else if (l.rank === 3){ medal = '🥉'; rowClass = 'top3'; }
+      else { medal = '#' + l.rank; rowClass = ''; }
+
+      const name = l.username ? '@' + l.username : (l.first_name || 'Игрок');
+      return `
+        <div class="rating-row ${rowClass}">
+          <span class="rating-rank">${medal}</span>
+          <div class="rating-name">
+            ${name}
+            <span class="rating-sub">Забегов: ${l.total_runs} · Комбо ×${l.best_combo}</span>
+          </div>
+          <span class="rating-score">${l.best_score}</span>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err){
+    console.error('[tir] Ошибка загрузки рейтинга:', err);
+    list.innerHTML = '<p style="text-align:center;color:#a43e3e;padding:20px">Не удалось загрузить. Проверь интернет.</p>';
+  }
 }
 
 window.addEventListener('message', (e) => {
