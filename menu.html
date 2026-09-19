@@ -469,6 +469,11 @@ devBtn.onclick = () => {
 <div id="toast" class="toast hidden"></div>
 
 <script>
+
+window.onerror = function(msg, src, line, col){
+  alert('ОШИБКА в menu.html:\n' + msg + '\n' + line + ':' + col);
+};
+  
 const SERVER_URL = 'https://tir-worker-paw31.pecerskijnikit.workers.dev';
 
 const send = (type, payload) => {
