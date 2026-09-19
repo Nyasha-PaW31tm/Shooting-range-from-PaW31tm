@@ -9,6 +9,11 @@ const endScreen=$("endScreen");
 let game=false,score=0,comboHits=0,ultHits=0,targets=[],bullets=[],nextId=1,spawnTimer=null,raf=null;
 let aimX=50,aimY=40,laserEnabled=false;
 
+/* ★ Следим за ростом целой части комбо-множителя.
+   Когда множитель переходит 2.0 → 3.0 и т.д., показываем
+   золотой текст. Сбрасывается при старте и при потере комбо. */
+let prevComboFloor = 1;
+
 /* ═══════════════════════════════════════════════════════════════
    ★ TELEGRAM WEBAPP
    ═══════════════════════════════════════════════════════════════ */
@@ -134,25 +139,111 @@ function removeTarget(t){t.el.remove();targets=targets.filter(x=>x!==t)}
 function addScore(points){score+=points*(laserEnabled?.75:1)}
 
 /* ═══════════════════════════════════════════════════════════════
-   ПОПАДАНИЕ
+   ★★★ СПЕЦЭФФЕКТЫ ★★★
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Возвращает координаты центра элемента в системе #range */
+function getElCenter(el){
+  const tr = el.getBoundingClientRect();
+  const r  = range.getBoundingClientRect();
+  return {
+    x: tr.left + tr.width/2 - r.left,
+    y: tr.top  + tr.height/2 - r.top
+  };
+}
+
+/* ★ ЭФФЕКТ 1: разлёт мишени на осколки.
+
+   НАСТРОЙКИ (можно менять):
+   - count: количество осколков. Сейчас 4-5 случайно.
+   - dist:  дистанция разлёта. Сейчас 45-90 px.
+   - размер осколков задаётся в CSS (.shard width/height). */
+function shatterTarget(el, x, y){
+  const color = getComputedStyle(el).backgroundColor;
+  const count = 4 + Math.floor(Math.random() * 2);   // ★ 4-5 осколков
+
+  for (let i = 0; i < count; i++){
+    const shard = document.createElement('div');
+    shard.className = 'shard';
+    shard.style.left = x + 'px';
+    shard.style.top  = y + 'px';
+    shard.style.background = color;
+
+    // Размер осколка — случайный для естественности
+    const size = 8 + Math.random() * 8;
+    shard.style.width  = size + 'px';
+    shard.style.height = size + 'px';
+
+    // Угол разлёта: равномерно по кругу + немного шума
+    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.6;
+    const dist  = 45 + Math.random() * 45;            // ★ дистанция
+
+    shard.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    shard.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+
+    range.appendChild(shard);
+    setTimeout(() => shard.remove(), 650);
+  }
+}
+
+/* ★ ЭФФЕКТ 2: золотой текст "×N.0" при росте множителя.
+
+   Показывается ТОЛЬКО при переходе на новую целую часть:
+   ×1.0 → ×2.0 → ×3.0 и т.д. Формула комбо: 1 + (hits-1)*0.1,
+   так что ×2.0 достигается при 11 попаданиях подряд,
+   ×3.0 — при 21, ×4.0 — при 31 и т.д. */
+function showGoldCombo(x, y, mult){
+  const el = document.createElement('div');
+  el.className = 'combo-pop';
+  el.textContent = '×' + mult.toFixed(1);
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+  range.appendChild(el);
+  setTimeout(() => el.remove(), 1300);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ПОПАДАНИЕ (с эффектами)
    ═══════════════════════════════════════════════════════════════ */
 function hitTarget(t){
   playSfx('hit');
   t.hp--;
-  if(t.hp>0){
-    let hp=t.el.querySelector(".hp");
-    if(hp)hp.textContent="HP 1/2";
-    comboHits++;ultHits=Math.min(5,ultHits+1);updateUI();
-    return;
+  const alive = t.hp > 0;
+
+  if (alive){
+    let hp = t.el.querySelector(".hp");
+    if (hp) hp.textContent = "HP 1/2";
+  } else {
+    addScore(TYPES[t.type].base * comboMult());
   }
-  addScore(TYPES[t.type].base*comboMult());
-  comboHits++;ultHits=Math.min(5,ultHits+1);
-  removeTarget(t);updateUI();
+
+  comboHits++;
+  ultHits = Math.min(5, ultHits + 1);
+
+  // ★ ЭФФЕКТ 1: разлёт осколков при убийстве
+  let center = null;
+  if (!alive){
+    center = getElCenter(t.el);
+    shatterTarget(t.el, center.x, center.y);
+  }
+
+  // ★ ЭФФЕКТ 2: золотая подсветка при росте целой части множителя
+  const newFloor = Math.floor(comboMult());
+  if (newFloor > prevComboFloor){
+    prevComboFloor = newFloor;
+    const c = center || getElCenter(t.el);
+    showGoldCombo(c.x, c.y, newFloor);
+  }
+
+  if (!alive) removeTarget(t);
+  updateUI();
 }
 
 function miss(){
   playSfx('miss');
-  comboHits=0;updateUI();
+  comboHits = 0;
+  prevComboFloor = 1;   // ★ сброс счётчика золотых подсветок
+  updateUI();
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -187,11 +278,6 @@ function updateRifle(){
   laser.classList.toggle("hidden",!laserEnabled||!game);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ★★★ ЗАЩИТА КНОПКИ ДОМИКА ★★★
-   Проверяем, попал ли тап по кнопке (или по её дочерним элементам),
-   чтобы не запускать прицел и не захватывать палец.
-   ═══════════════════════════════════════════════════════════════ */
 function isOnHomeBtn(e){
   let el = e.target;
   while(el && el !== range){
@@ -267,6 +353,12 @@ function ultimate(){
   runStats.ultCount++;
   playSfx('ult');
 
+  // Разлетаем все мишени одновременно
+  [...targets].forEach(t => {
+    const c = getElCenter(t.el);
+    shatterTarget(t.el, c.x, c.y);
+  });
+
   let total=0;
   [...targets].forEach(t=>{total+=TYPES[t.type].base;removeTarget(t)});
   addScore(total*comboMult()*3);
@@ -292,7 +384,6 @@ function saveRunResult(win){
       date: new Date().toLocaleDateString('ru-RU')
     });
     localStorage.setItem('tir_history', JSON.stringify(history.slice(0, 10)));
-    console.log("[tir] Забег сохранён в историю. win =", win, "score =", Math.floor(score));
   } catch(err){
     console.error("[tir] Ошибка сохранения истории:", err);
   }
@@ -300,7 +391,6 @@ function saveRunResult(win){
 
 /* ═══════════════════════════════════════════════════════════════
    МОСТ МЕЖДУ МЕНЮ (iframe) И ИГРОЙ
-   Объявлен ЗАРАНЕЕ, чтобы exitToMenu мог его использовать.
    ═══════════════════════════════════════════════════════════════ */
 const menuFrame=$("menuFrame");
 
@@ -311,6 +401,7 @@ function startGame(){
   score=0;comboHits=0;ultHits=0;targets=[];
   bullets.forEach(b=>b.remove());bullets=[];
   nextId=1;game=true;
+  prevComboFloor = 1;   // ★ сброс золотых подсветок
   runStats = { shotCount:0, ultCount:0, maxComboMult:1, startTime:performance.now(), duration:0 };
   updateUI();
   endScreen.classList.add("hidden");
@@ -327,9 +418,6 @@ function startGame(){
   raf=requestAnimationFrame(loop);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ФИНИШ (победа или проигрыш по правилам)
-   ═══════════════════════════════════════════════════════════════ */
 function finish(win){
   game=false;clearInterval(spawnTimer);
   laser.classList.add("hidden");
@@ -349,36 +437,24 @@ function finish(win){
   endScreen.classList.remove("hidden");
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ★★★ ВЫХОД В МЕНЮ ЧЕРЕЗ ДОМИК ★★★
-   БЕЗ диалогов подтверждения — они ломались в WebView.
-   Работает так: фиксируем результат как поражение → сохраняем
-   в историю → чистим полигон → показываем меню.
-   ═══════════════════════════════════════════════════════════════ */
 function exitToMenu(){
-  console.log("[tir] exitToMenu вызван. game =", game);
   if(!game) return;
 
-  // 1. Фиксируем время и сохраняем как проигрыш
   runStats.duration = Math.round((performance.now() - runStats.startTime) / 1000);
   saveRunResult(false);
 
-  // 2. Останавливаем игру
   game = false;
   clearInterval(spawnTimer);
   cancelAnimationFrame(raf);
 
-  // 3. Чистим полигон
   [...targets].forEach(t => t.el.remove());
   targets = [];
   bullets.forEach(b => b.remove());
   bullets = [];
 
-  // 4. Прячем лазер и кнопку домика
   laser.classList.add("hidden");
   $("homeBtn").classList.add("hidden");
 
-  // 5. Показываем меню
   try {
     menuFrame.style.display = "block";
     if (menuFrame.contentWindow){
@@ -389,7 +465,6 @@ function exitToMenu(){
   }
 
   updateRifle();
-  console.log("[tir] Выход в меню завершён.");
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -438,36 +513,19 @@ $("fire").onclick=fire;
 $("ultimate").onclick=ultimate;
 $("again").onclick=startGame;
 
-/* ═══════════════════════════════════════════════════════════════
-   ★★★ ОБРАБОТЧИКИ КНОПКИ ДОМИКА ★★★
-   ВАЖНО: используем несколько событий + перехват на document
-   в capture-фазе. Диалоги подтверждения не используем —
-   они не работают в WebView.
-   ═══════════════════════════════════════════════════════════════ */
 const homeBtn = $("homeBtn");
-
-// Не даём событию всплыть до #range (чтобы setPointerCapture не съел тап)
-homeBtn.addEventListener("pointerdown", e => {
-  e.stopPropagation();
-}, true);
-
-// Основной обработчик — pointerup (надёжнее click на мобиле)
+homeBtn.addEventListener("pointerdown", e => { e.stopPropagation(); }, true);
 homeBtn.addEventListener("pointerup", e => {
   e.stopPropagation();
   e.preventDefault();
   exitToMenu();
 });
-
-// Дублирующий обработчик — click (для десктопа и на всякий случай)
 homeBtn.addEventListener("click", e => {
   e.stopPropagation();
   e.preventDefault();
   exitToMenu();
 });
 
-// Тройная защита: перехват на уровне документа в capture-фазе.
-// Сработает, даже если предыдущие два обработчика по какой-то
-// причине не сработали.
 document.addEventListener("click", e => {
   const t = e.target;
   if(t && (t.id === "homeBtn" || (t.closest && t.closest("#homeBtn")))){
